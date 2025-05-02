@@ -22,7 +22,7 @@ Add Atlas C2PA Library to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-atlas-c2pa-lib = "0.1"
+atlas-c2pa-lib = "0.1.0"
 ```
 
 ## 🚀 Quick Start
