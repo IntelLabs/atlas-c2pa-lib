@@ -135,6 +135,7 @@ This project is licensed under the [Apache License, Version 2.0](LICENSE).
 - [C2PA Specification](https://c2pa.org/specifications/specifications/2.1/index.html) - The official C2PA specification
 - [Content Authenticity Initiative](https://contentauthenticity.org/) - Industry initiative for content provenance
 - [Atlas CLI](https://github.com/IntelLabs/atlas-cli) - Related tools for responsible AI
+
 ## Disclaimer
 
 This code in this repo is not stable yet, and should not be used in production environments.
