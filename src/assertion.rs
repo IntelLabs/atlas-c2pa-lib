@@ -351,10 +351,10 @@ fn validate_hash_assertion(hash_assertion: &HashAssertion) -> Result<(), String>
 
     // Validate that the hash algorithm is one of the supported ones
     match hash_assertion.algorithm.as_str() {
-        "sha256" | "sha512" | "md5" => {} // Supported algorithms
+        "sha256" | "sha384" | "sha512" => {} // Supported algorithms per C2PA spec
         _ => {
             return Err(format!(
-                "[HashAssertion] Unsupported hashing algorithm: '{}'. Expected one of: sha256, sha512, md5",
+                "[HashAssertion] Unsupported hashing algorithm: '{}'. Expected one of: sha256, sha384, sha512",
                 hash_assertion.algorithm
             ))
         }
@@ -368,8 +368,8 @@ fn validate_hash_assertion(hash_assertion: &HashAssertion) -> Result<(), String>
     // Validate the length of the hash based on the algorithm
     let expected_length = match hash_assertion.algorithm.as_str() {
         "sha256" => 32, // 256 bits = 32 bytes
+        "sha384" => 48, // 384 bits = 48 bytes
         "sha512" => 64, // 512 bits = 64 bytes
-        "md5" => 16,    // 128 bits = 16 bytes
         _ => return Err("[HashAssertion] Unsupported algorithm length validation".to_string()),
     };
 
