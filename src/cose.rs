@@ -157,6 +157,7 @@ use coset::{CborSerializable, CoseSign1, CoseSign1Builder, Header};
 use openssl::hash::MessageDigest;
 use openssl::pkey::PKey;
 use openssl::sign::{Signer, Verifier};
+use std::str::FromStr;
 
 /// Supported hash algorithms for COSE signing and verification
 #[derive(Debug, Clone)]
@@ -187,9 +188,12 @@ impl HashAlgorithm {
             HashAlgorithm::Sha512 => "sha512",
         }
     }
+}
+// Implement the standard FromStr trait
+impl FromStr for HashAlgorithm {
+    type Err = String;
 
-    /// Parse algorithm from string representation
-    pub fn from_str(s: &str) -> Result<Self, String> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "sha256" => Ok(HashAlgorithm::Sha256),
             "sha384" => Ok(HashAlgorithm::Sha384),
@@ -201,7 +205,6 @@ impl HashAlgorithm {
         }
     }
 }
-
 /// Signs a CBOR-encoded claim using the specified hash algorithm.
 ///
 /// # Arguments
@@ -430,6 +433,8 @@ mod tests {
 
     #[test]
     fn test_hash_algorithm_conversions() {
+        use std::str::FromStr;
+
         // Test as_str()
         assert_eq!(HashAlgorithm::Sha256.as_str(), "sha256");
         assert_eq!(HashAlgorithm::Sha384.as_str(), "sha384");
@@ -447,6 +452,12 @@ mod tests {
         assert!(matches!(
             HashAlgorithm::from_str("sha512").unwrap(),
             HashAlgorithm::Sha512
+        ));
+
+        // Can also use the parse method that comes with FromStr
+        assert!(matches!(
+            "sha256".parse::<HashAlgorithm>().unwrap(),
+            HashAlgorithm::Sha256
         ));
 
         // Test from_str() - invalid cases
