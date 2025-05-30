@@ -90,10 +90,10 @@ pub fn validate_datetime(datetime: &OffsetDateTimeWrapper) -> Result<(), String>
 
 /// Reads the contents of a PEM file into a `Vec<u8>`.
 fn load_pem_file(path: &str) -> Result<Vec<u8>, String> {
-    let mut file = File::open(path).map_err(|e| format!("Failed to open PEM file: {}", e))?;
+    let mut file = File::open(path).map_err(|e| format!("Failed to open PEM file: {e}"))?;
     let mut contents = Vec::new();
     file.read_to_end(&mut contents)
-        .map_err(|e| format!("Failed to read PEM file: {}", e))?;
+        .map_err(|e| format!("Failed to read PEM file: {e}"))?;
     Ok(contents)
 }
 
@@ -114,29 +114,26 @@ pub fn verify_tsa_token(tsa_token_path: &str, tsa_public_key_path: &str) -> Resu
     // Check if files exist first
     if !std::path::Path::new(tsa_token_path).exists() {
         return Err(format!(
-            "[TSA] Token file not found at path: {}",
-            tsa_token_path
+            "[TSA] Token file not found at path: {tsa_token_path}"
         ));
     }
 
     if !std::path::Path::new(tsa_public_key_path).exists() {
         return Err(format!(
-            "[TSA] Public key file not found at path: {}",
-            tsa_public_key_path
+            "[TSA] Public key file not found at path: {tsa_public_key_path}"
         ));
     }
 
     let mut tsa_token_file = File::open(tsa_token_path).map_err(|e| {
         format!(
-            "[TSA] Failed to open token file '{}': {}",
-            tsa_token_path, e
+            "[TSA] Failed to open token file '{tsa_token_path}': {e}"
         )
     })?;
 
     let mut tsa_token_data = Vec::new();
     tsa_token_file
         .read_to_end(&mut tsa_token_data)
-        .map_err(|e| format!("[TSA] Failed to read token file: {}", e))?;
+        .map_err(|e| format!("[TSA] Failed to read token file: {e}"))?;
 
     if tsa_token_data.is_empty() {
         return Err("[TSA] TSA token file is empty".to_string());
@@ -144,18 +141,16 @@ pub fn verify_tsa_token(tsa_token_path: &str, tsa_public_key_path: &str) -> Resu
 
     let mut cms = CmsContentInfo::from_der(&tsa_token_data).map_err(|e| {
         format!(
-            "[TSA] Failed to parse CMS structure: {} (invalid DER format)",
-            e
+            "[TSA] Failed to parse CMS structure: {e} (invalid DER format)"
         )
     })?;
 
     let pem_data = load_pem_file(tsa_public_key_path)
-        .map_err(|e| format!("[TSA] Failed to load public key: {}", e))?;
+        .map_err(|e| format!("[TSA] Failed to load public key: {e}"))?;
 
     let tsa_public_key = X509::stack_from_pem(&pem_data).map_err(|e| {
         format!(
-            "[TSA] Failed to parse public key (invalid PEM format): {}",
-            e
+            "[TSA] Failed to parse public key (invalid PEM format): {e}"
         )
     })?;
 
@@ -171,7 +166,7 @@ pub fn verify_tsa_token(tsa_token_path: &str, tsa_public_key_path: &str) -> Resu
         None, // No X509 store reference
         CMSOptions::empty(),
     )
-    .map_err(|e| format!("[TSA] Token signature verification failed: {}", e))?;
+    .map_err(|e| format!("[TSA] Token signature verification failed: {e}"))?;
 
     Ok(())
 }

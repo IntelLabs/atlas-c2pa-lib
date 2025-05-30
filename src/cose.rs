@@ -199,8 +199,7 @@ impl FromStr for HashAlgorithm {
             "sha384" => Ok(HashAlgorithm::Sha384),
             "sha512" => Ok(HashAlgorithm::Sha512),
             _ => Err(format!(
-                "Unsupported hash algorithm: {}. Supported algorithms are: sha256, sha384, sha512",
-                s
+                "Unsupported hash algorithm: {s}. Supported algorithms are: sha256, sha384, sha512"
             )),
         }
     }
@@ -274,7 +273,7 @@ pub fn sign_claim_with_algorithm(
     // Serialize the signed COSE structure to a byte array (CBOR format)
     sign1
         .to_vec()
-        .map_err(|e| format!("[COSE] Failed to serialize signed claim: {}", e))
+        .map_err(|e| format!("[COSE] Failed to serialize signed claim: {e}"))
 }
 
 /// Signs a CBOR-encoded claim using the default SHA-384 algorithm.
@@ -342,7 +341,7 @@ pub fn verify_signed_claim_with_algorithm(
 ) -> Result<(), String> {
     // Parse the COSE-encoded signed claim
     let sign1 = CoseSign1::from_slice(signed_claim)
-        .map_err(|e| format!("Failed to parse signed claim: {}", e))?;
+        .map_err(|e| format!("Failed to parse signed claim: {e}"))?;
 
     // Get the payload (the signed data)
     let payload = sign1
@@ -365,7 +364,7 @@ pub fn verify_signed_claim_with_algorithm(
     // Feed the payload (the data that was signed) into the verifier
     verifier
         .update(payload)
-        .map_err(|e| format!("Failed to update verifier with payload: {}", e))?;
+        .map_err(|e| format!("Failed to update verifier with payload: {e}"))?;
 
     // Verify the signature using the public key
     if verifier
@@ -489,262 +488,191 @@ mod tests {
             "Verification should fail with wrong algorithm"
         );
     }
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-        use openssl::pkey::PKey;
-        use openssl::rsa::Rsa;
 
-        // Helper function to generate a test key pair
-        fn generate_test_keypair() -> (PKey<openssl::pkey::Private>, PKey<openssl::pkey::Public>) {
-            let rsa = Rsa::generate(2048).expect("Failed to generate RSA key");
-            let private_key = PKey::from_rsa(rsa.clone()).expect("Failed to create private key");
-            let public_key_rsa = rsa
-                .public_key_to_pem()
-                .expect("Failed to export public key");
-            let public_key =
-                PKey::public_key_from_pem(&public_key_rsa).expect("Failed to create public key");
-            (private_key, public_key)
-        }
+    #[test]
+    fn test_sign_and_verify_with_sha384() {
+        let (private_key, public_key) = generate_test_keypair();
+        let test_data = b"Test claim data for SHA-384";
 
-        #[test]
-        fn test_hash_algorithm_conversions() {
-            // Test as_str()
-            assert_eq!(HashAlgorithm::Sha256.as_str(), "sha256");
-            assert_eq!(HashAlgorithm::Sha384.as_str(), "sha384");
-            assert_eq!(HashAlgorithm::Sha512.as_str(), "sha512");
+        // Sign with SHA-384
+        let signed = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha384)
+            .expect("Failed to sign with SHA-384");
 
-            // Test from_str() - valid cases
-            assert!(matches!(
-                HashAlgorithm::from_str("sha256").unwrap(),
-                HashAlgorithm::Sha256
-            ));
-            assert!(matches!(
-                HashAlgorithm::from_str("sha384").unwrap(),
-                HashAlgorithm::Sha384
-            ));
-            assert!(matches!(
-                HashAlgorithm::from_str("sha512").unwrap(),
-                HashAlgorithm::Sha512
-            ));
-
-            // Test from_str() - invalid cases
-            assert!(HashAlgorithm::from_str("sha1").is_err());
-            assert!(HashAlgorithm::from_str("md5").is_err());
-            assert!(HashAlgorithm::from_str("SHA256").is_err()); // Case sensitive
-            assert!(HashAlgorithm::from_str("").is_err());
-        }
-
-        #[test]
-        fn test_sign_and_verify_with_sha256() {
-            let (private_key, public_key) = generate_test_keypair();
-            let test_data = b"Test claim data for SHA-256";
-
-            // Sign with SHA-256
-            let signed = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha256)
-                .expect("Failed to sign with SHA-256");
-
-            // Verify with SHA-256
-            assert!(
-                verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha256)
-                    .is_ok(),
-                "Failed to verify SHA-256 signature"
-            );
-
-            // Verify with wrong algorithm should fail
-            assert!(
-                verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha384)
-                    .is_err(),
-                "Verification should fail with wrong algorithm"
-            );
-        }
-
-        #[test]
-        fn test_sign_and_verify_with_sha384() {
-            let (private_key, public_key) = generate_test_keypair();
-            let test_data = b"Test claim data for SHA-384";
-
-            // Sign with SHA-384
-            let signed = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha384)
-                .expect("Failed to sign with SHA-384");
-
-            // Verify with SHA-384
-            assert!(
-                verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha384)
-                    .is_ok(),
-                "Failed to verify SHA-384 signature"
-            );
-
-            // Verify with wrong algorithm should fail
-            assert!(
-                verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha512)
-                    .is_err(),
-                "Verification should fail with wrong algorithm"
-            );
-        }
-
-        #[test]
-        fn test_sign_and_verify_with_sha512() {
-            let (private_key, public_key) = generate_test_keypair();
-            let test_data = b"Test claim data for SHA-512";
-
-            // Sign with SHA-512
-            let signed = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha512)
-                .expect("Failed to sign with SHA-512");
-
-            // Verify with SHA-512
-            assert!(
-                verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha512)
-                    .is_ok(),
-                "Failed to verify SHA-512 signature"
-            );
-
-            // Verify with wrong algorithm should fail
-            assert!(
-                verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha256)
-                    .is_err(),
-                "Verification should fail with wrong algorithm"
-            );
-        }
-
-        #[test]
-        fn test_default_functions_use_sha384() {
-            let (private_key, public_key) = generate_test_keypair();
-            let test_data = b"Test claim data for default algorithm";
-
-            // Sign with default function (should use SHA-384)
-            let signed_default =
-                sign_claim(test_data, &private_key).expect("Failed to sign with default algorithm");
-
-            // Sign explicitly with SHA-384
-            let signed_explicit =
-                sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha384)
-                    .expect("Failed to sign with explicit SHA-384");
-
-            // Verify default signed data with SHA-384
-            assert!(
-                verify_signed_claim_with_algorithm(
-                    &signed_default,
-                    &public_key,
-                    HashAlgorithm::Sha384
-                )
+        // Verify with SHA-384
+        assert!(
+            verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha384)
                 .is_ok(),
-                "Default sign_claim should use SHA-384"
-            );
+            "Failed to verify SHA-384 signature"
+        );
 
-            // Verify default function can verify SHA-384 signatures
-            assert!(
-                verify_signed_claim(&signed_explicit, &public_key).is_ok(),
-                "Default verify_signed_claim should use SHA-384"
-            );
+        // Verify with wrong algorithm should fail
+        assert!(
+            verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha512)
+                .is_err(),
+            "Verification should fail with wrong algorithm"
+        );
+    }
 
-            // Default verify should work with default sign
+    #[test]
+    fn test_sign_and_verify_with_sha512() {
+        let (private_key, public_key) = generate_test_keypair();
+        let test_data = b"Test claim data for SHA-512";
+
+        // Sign with SHA-512
+        let signed = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha512)
+            .expect("Failed to sign with SHA-512");
+
+        // Verify with SHA-512
+        assert!(
+            verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha512)
+                .is_ok(),
+            "Failed to verify SHA-512 signature"
+        );
+
+        // Verify with wrong algorithm should fail
+        assert!(
+            verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha256)
+                .is_err(),
+            "Verification should fail with wrong algorithm"
+        );
+    }
+
+    #[test]
+    fn test_default_functions_use_sha384() {
+        let (private_key, public_key) = generate_test_keypair();
+        let test_data = b"Test claim data for default algorithm";
+
+        // Sign with default function (should use SHA-384)
+        let signed_default =
+            sign_claim(test_data, &private_key).expect("Failed to sign with default algorithm");
+
+        // Sign explicitly with SHA-384
+        let signed_explicit =
+            sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha384)
+                .expect("Failed to sign with explicit SHA-384");
+
+        // Verify default signed data with SHA-384
+        assert!(
+            verify_signed_claim_with_algorithm(
+                &signed_default,
+                &public_key,
+                HashAlgorithm::Sha384
+            )
+            .is_ok(),
+            "Default sign_claim should use SHA-384"
+        );
+
+        // Verify default function can verify SHA-384 signatures
+        assert!(
+            verify_signed_claim(&signed_explicit, &public_key).is_ok(),
+            "Default verify_signed_claim should use SHA-384"
+        );
+
+        // Default verify should work with default sign
+        assert!(
+            verify_signed_claim(&signed_default, &public_key).is_ok(),
+            "Default functions should be compatible"
+        );
+    }
+
+    #[test]
+    fn test_signature_uniqueness() {
+        let (private_key, public_key) = generate_test_keypair();
+        let test_data = b"Test data for signature uniqueness";
+
+        // Sign the same data multiple times with the same algorithm
+        let sig1 = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha384)
+            .expect("Failed to sign 1");
+        let sig2 = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha384)
+            .expect("Failed to sign 2");
+
+        // Signatures might be different due to randomness in signing process
+        // But both should be valid
+        assert!(
+            verify_signed_claim_with_algorithm(&sig1, &public_key, HashAlgorithm::Sha384)
+                .is_ok(),
+            "First signature should be valid"
+        );
+        assert!(
+            verify_signed_claim_with_algorithm(&sig2, &public_key, HashAlgorithm::Sha384)
+                .is_ok(),
+            "Second signature should be valid"
+        );
+
+        // Sign with different algorithms
+        let sig_256 = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha256)
+            .expect("Failed to sign with SHA-256");
+        let sig_384 = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha384)
+            .expect("Failed to sign with SHA-384");
+        let sig_512 = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha512)
+            .expect("Failed to sign with SHA-512");
+
+        // Signatures with different algorithms should produce different results
+        assert_ne!(
+            sig_256, sig_384,
+            "SHA-256 and SHA-384 signatures should differ"
+        );
+        assert_ne!(
+            sig_384, sig_512,
+            "SHA-384 and SHA-512 signatures should differ"
+        );
+        assert_ne!(
+            sig_256, sig_512,
+            "SHA-256 and SHA-512 signatures should differ"
+        );
+    }
+
+    #[test]
+    fn test_empty_data_signing() {
+        let (private_key, public_key) = generate_test_keypair();
+        let empty_data = b"";
+
+        // Test all algorithms with empty data
+        for algo in [
+            HashAlgorithm::Sha256,
+            HashAlgorithm::Sha384,
+            HashAlgorithm::Sha512,
+        ] {
+            let signed = sign_claim_with_algorithm(empty_data, &private_key, algo.clone())
+                .unwrap_or_else(|_| panic!("Failed to sign empty data with {algo:?}"));
+
             assert!(
-                verify_signed_claim(&signed_default, &public_key).is_ok(),
-                "Default functions should be compatible"
+                verify_signed_claim_with_algorithm(&signed, &public_key, algo.clone()).is_ok(),
+                "Failed to verify empty data signature with {algo:?}"
             );
         }
+    }
 
-        #[test]
-        fn test_signature_uniqueness() {
-            let (private_key, public_key) = generate_test_keypair();
-            let test_data = b"Test data for signature uniqueness";
+    #[test]
+    fn test_large_data_signing() {
+        let (private_key, public_key) = generate_test_keypair();
+        // Create 1MB of test data
+        let large_data = vec![0x42u8; 1024 * 1024];
 
-            // Sign the same data multiple times with the same algorithm
-            let sig1 = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha384)
-                .expect("Failed to sign 1");
-            let sig2 = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha384)
-                .expect("Failed to sign 2");
+        // Test with SHA-384 (default)
+        let signed = sign_claim(&large_data, &private_key).expect("Failed to sign large data");
 
-            // Signatures might be different due to randomness in signing process
-            // But both should b valid
-            assert!(
-                verify_signed_claim_with_algorithm(&sig1, &public_key, HashAlgorithm::Sha384)
-                    .is_ok(),
-                "First signature should be valid"
-            );
-            assert!(
-                verify_signed_claim_with_algorithm(&sig2, &public_key, HashAlgorithm::Sha384)
-                    .is_ok(),
-                "Second signature should be valid"
-            );
+        assert!(
+            verify_signed_claim(&signed, &public_key).is_ok(),
+            "Failed to verify large data signature"
+        );
+    }
 
-            // Sign with different algorithms
-            let sig_256 = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha256)
-                .expect("Failed to sign with SHA-256");
-            let sig_384 = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha384)
-                .expect("Failed to sign with SHA-384");
-            let sig_512 = sign_claim_with_algorithm(test_data, &private_key, HashAlgorithm::Sha512)
-                .expect("Failed to sign with SHA-512");
+    #[test]
+    fn test_verification_with_wrong_key() {
+        let (private_key1, _) = generate_test_keypair();
+        let (_, public_key2) = generate_test_keypair();
+        let test_data = b"Test data for wrong key verification";
 
-            // Signatures with different algorithms should produce different results
-            assert_ne!(
-                sig_256, sig_384,
-                "SHA-256 and SHA-384 signatures should differ"
-            );
-            assert_ne!(
-                sig_384, sig_512,
-                "SHA-384 and SHA-512 signatures should differ"
-            );
-            assert_ne!(
-                sig_256, sig_512,
-                "SHA-256 and SHA-512 signatures should differ"
-            );
-        }
+        // Sign with key1
+        let signed = sign_claim_with_algorithm(test_data, &private_key1, HashAlgorithm::Sha384)
+            .expect("Failed to sign");
 
-        #[test]
-        fn test_empty_data_signing() {
-            let (private_key, public_key) = generate_test_keypair();
-            let empty_data = b"";
-
-            // Test all algorithms with empty data
-            for algo in vec![
-                HashAlgorithm::Sha256,
-                HashAlgorithm::Sha384,
-                HashAlgorithm::Sha512,
-            ] {
-                let signed = sign_claim_with_algorithm(empty_data, &private_key, algo.clone())
-                    .expect(&format!("Failed to sign empty data with {:?}", algo));
-
-                assert!(
-                    verify_signed_claim_with_algorithm(&signed, &public_key, algo.clone()).is_ok(),
-                    "Failed to verify empty data signature with {:?}",
-                    algo
-                );
-            }
-        }
-
-        #[test]
-        fn test_large_data_signing() {
-            let (private_key, public_key) = generate_test_keypair();
-            // Create 1MB of test data
-            let large_data = vec![0x42u8; 1024 * 1024];
-
-            // Test with SHA-384 (default)
-            let signed = sign_claim(&large_data, &private_key).expect("Failed to sign large data");
-
-            assert!(
-                verify_signed_claim(&signed, &public_key).is_ok(),
-                "Failed to verify large data signature"
-            );
-        }
-
-        #[test]
-        fn test_verification_with_wrong_key() {
-            let (private_key1, _) = generate_test_keypair();
-            let (_, public_key2) = generate_test_keypair();
-            let test_data = b"Test data for wrong key verification";
-
-            // Sign with key1
-            let signed = sign_claim_with_algorithm(test_data, &private_key1, HashAlgorithm::Sha384)
-                .expect("Failed to sign");
-
-            // Verify with key2 should fail
-            assert!(
-                verify_signed_claim_with_algorithm(&signed, &public_key2, HashAlgorithm::Sha384)
-                    .is_err(),
-                "Verification should fail with wrong public key"
-            );
-        }
+        // Verify with key2 should fail
+        assert!(
+            verify_signed_claim_with_algorithm(&signed, &public_key2, HashAlgorithm::Sha384)
+                .is_err(),
+            "Verification should fail with wrong public key"
+        );
     }
 }

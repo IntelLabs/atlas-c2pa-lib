@@ -3,10 +3,8 @@ use atlas_c2pa_lib::claim::ClaimV2;
 use atlas_c2pa_lib::datetime_wrapper::OffsetDateTimeWrapper;
 use atlas_c2pa_lib::ingredient::{Ingredient, IngredientData, LinkedIngredient};
 use atlas_c2pa_lib::manifest::Manifest;
-use hex;
 use mockito::mock;
 use openssl::sha::sha256;
-use reqwest;
 use time::OffsetDateTime;
 
 #[test]
@@ -96,7 +94,7 @@ fn test_ingredient_linking_with_verification() {
     // Request the linked ingredient via HTTP mock
     let client = reqwest::blocking::Client::new();
     let response = client
-        .get(&ingredient.data.linked_ingredient_url.unwrap())
+        .get(ingredient.data.linked_ingredient_url.unwrap())
         .send()
         .expect("Failed to request linked ingredient");
 
@@ -127,7 +125,7 @@ fn test_ingredient_linking_with_verification() {
         .expect("Failed to read main ingredient body");
 
     // Print the main body for debugging purposes
-    println!("Main Ingredient Response Body: {}", main_body);
+    println!("Main Ingredient Response Body: {main_body}");
 
     // Validate the main ingredient mock was called
     ingredient_mock.assert();

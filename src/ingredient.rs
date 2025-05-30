@@ -125,17 +125,17 @@ impl Ingredient {
         if let Some(key) = public_key {
             // Perform verification with the provided public key (dummy implementation)
             let mut verifier = Verifier::new(openssl::hash::MessageDigest::sha256(), key)
-                .map_err(|e| format!("Failed to create verifier: {}", e))?;
+                .map_err(|e| format!("Failed to create verifier: {e}"))?;
 
             // This is a placeholder for the actual data that would be verified
             let data_to_verify = b"example data";
 
             verifier
                 .update(data_to_verify)
-                .map_err(|e| format!("Failed to update verifier: {}", e))?;
+                .map_err(|e| format!("Failed to update verifier: {e}"))?;
             if verifier
                 .verify(&[])
-                .map_err(|e| format!("Failed to verify: {}", e))?
+                .map_err(|e| format!("Failed to verify: {e}"))?
             {
                 Ok(())
             } else {
@@ -172,16 +172,16 @@ impl Verifiable for Ingredient {
         if let Some(key) = public_key {
             // Perform signature verification using the public key
             let mut verifier = Verifier::new(openssl::hash::MessageDigest::sha256(), key)
-                .map_err(|e| format!("Failed to create verifier: {}", e))?;
+                .map_err(|e| format!("Failed to create verifier: {e}"))?;
 
             let data_to_verify = b"example data"; // Replace with actual data to verify
             verifier
                 .update(data_to_verify)
-                .map_err(|e| format!("Failed to update verifier: {}", e))?;
+                .map_err(|e| format!("Failed to update verifier: {e}"))?;
 
             if verifier
                 .verify(&[])
-                .map_err(|e| format!("Failed to verify: {}", e))?
+                .map_err(|e| format!("Failed to verify: {e}"))?
             {
                 Ok(())
             } else {

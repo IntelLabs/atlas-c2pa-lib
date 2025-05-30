@@ -6,7 +6,6 @@ use atlas_c2pa_lib::claim::ClaimV2; // Updated to use ClaimV2
 use atlas_c2pa_lib::datetime_wrapper::OffsetDateTimeWrapper;
 use atlas_c2pa_lib::ingredient::{Ingredient, IngredientData};
 use atlas_c2pa_lib::manifest::Manifest;
-use hex;
 use mockito::mock;
 use openssl::sha::sha256;
 use std::fs;
