@@ -183,7 +183,7 @@ pub fn validate_manifest_timestamp(datetime: &OffsetDateTimeWrapper) -> Result<(
 pub fn validate_manifest_structure(manifest_bytes: &[u8]) -> Result<(), String> {
     // Parse the manifest JSON
     let manifest: Value = serde_json::from_slice(manifest_bytes)
-        .map_err(|e| format!("Failed to parse manifest JSON: {}", e))?;
+        .map_err(|e| format!("Failed to parse manifest JSON: {e}"))?;
 
     // Ensure it has required fields (e.g., claim, instance_id, ingredients)
     if manifest.get("claim").is_none() {
@@ -227,7 +227,7 @@ pub fn validate_linked_manifest(
 
     let manifest_bytes = response
         .bytes()
-        .map_err(|e| format!("[LinkedManifest] Failed to read manifest response: {}", e))?;
+        .map_err(|e| format!("[LinkedManifest] Failed to read manifest response: {e}"))?;
 
     if manifest_bytes.is_empty() {
         return Err("[LinkedManifest] Received empty manifest data".to_string());
@@ -246,27 +246,27 @@ pub fn validate_linked_manifest(
 
     // Validate the manifest structure
     validate_manifest_structure(&manifest_bytes)
-        .map_err(|e| format!("[LinkedManifest] Invalid manifest structure: {}", e))?;
+        .map_err(|e| format!("[LinkedManifest] Invalid manifest structure: {e}"))?;
 
     // Validate the manifest signature
     let signature = extract_signature_from_manifest(&manifest_bytes)
-        .map_err(|e| format!("[LinkedManifest] Failed to extract signature: {}", e))?;
+        .map_err(|e| format!("[LinkedManifest] Failed to extract signature: {e}"))?;
 
     validate_manifest_signature(&manifest_bytes, &signature, public_key)
-        .map_err(|e| format!("[LinkedManifest] Signature validation failed: {}", e))?;
+        .map_err(|e| format!("[LinkedManifest] Signature validation failed: {e}"))?;
 
     Ok(())
 }
 
 fn extract_signature_from_manifest(manifest_bytes: &[u8]) -> Result<Vec<u8>, String> {
     let manifest: Manifest = serde_json::from_slice(manifest_bytes)
-        .map_err(|e| format!("Failed to parse manifest JSON: {}", e))?;
+        .map_err(|e| format!("Failed to parse manifest JSON: {e}"))?;
 
     // Check if claim_v2 is present
     if let Some(claim_v2) = manifest.claim_v2 {
         if let Some(signature) = claim_v2.signature {
             let signature_bytes = base64::decode(signature)
-                .map_err(|e| format!("Failed to decode signature: {}", e))?;
+                .map_err(|e| format!("Failed to decode signature: {e}"))?;
             return Ok(signature_bytes);
         } else {
             return Err("Signature field is missing in claim_v2.".to_string());
@@ -275,7 +275,7 @@ fn extract_signature_from_manifest(manifest_bytes: &[u8]) -> Result<Vec<u8>, Str
 
     if let Some(signature) = manifest.claim.signature {
         let signature_bytes =
-            base64::decode(signature).map_err(|e| format!("Failed to decode signature: {}", e))?;
+            base64::decode(signature).map_err(|e| format!("Failed to decode signature: {e}"))?;
         Ok(signature_bytes)
     } else {
         Err("Signature field is missing in claim.".to_string())
@@ -289,17 +289,17 @@ pub fn validate_manifest_signature(
 ) -> Result<(), String> {
     // Create a verifier with the public key
     let mut verifier = Verifier::new(openssl::hash::MessageDigest::sha256(), public_key)
-        .map_err(|e| format!("Failed to create verifier: {}", e))?;
+        .map_err(|e| format!("Failed to create verifier: {e}"))?;
 
     // Update the verifier with the manifest data
     verifier
         .update(manifest_bytes)
-        .map_err(|e| format!("Failed to update verifier: {}", e))?;
+        .map_err(|e| format!("Failed to update verifier: {e}"))?;
 
     // Verify the signature
     if verifier
         .verify(signature)
-        .map_err(|e| format!("Failed to verify signature: {}", e))?
+        .map_err(|e| format!("Failed to verify signature: {e}"))?
     {
         Ok(())
     } else {

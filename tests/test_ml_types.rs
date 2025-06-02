@@ -2,7 +2,6 @@ use atlas_c2pa_lib::ml::assertions::MLModelAssertion;
 use atlas_c2pa_lib::ml::types::{
     DatasetInfo, MLFramework, Metric, ModelFormat, ModelInfo, Parameter, TrainingInfo,
 };
-use serde_json;
 
 #[test]
 fn test_model_info_creation() {
@@ -132,8 +131,7 @@ fn test_serialization() {
 
 #[test]
 fn test_training_metrics() {
-    let metrics = vec![
-        Metric {
+    let metrics = [Metric {
             name: "accuracy".to_string(),
             value: 0.95,
         },
@@ -144,8 +142,7 @@ fn test_training_metrics() {
         Metric {
             name: "f1_score".to_string(),
             value: 0.89,
-        },
-    ];
+        }];
 
     assert_eq!(metrics.len(), 3);
     assert!(metrics[0].value >= 0.0 && metrics[0].value <= 1.0);

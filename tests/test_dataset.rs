@@ -6,7 +6,6 @@ use atlas_c2pa_lib::claim::ClaimV2; // Using ClaimV2
 use atlas_c2pa_lib::datetime_wrapper::OffsetDateTimeWrapper;
 use atlas_c2pa_lib::ingredient::{Ingredient, IngredientData};
 use atlas_c2pa_lib::manifest::Manifest;
-use hex;
 use mockito::mock;
 use openssl::sha::sha256;
 use std::fs;
@@ -15,25 +14,23 @@ use time::OffsetDateTime;
 fn test_dataset_manifest_creation_v2() {
     let claim_generator = "c2pa-ml/0.1.0".to_string();
 
-    let file_paths = vec![
-        "tests/test_data/t10k-images-idx3-ubyte.gz",
+    let file_paths = ["tests/test_data/t10k-images-idx3-ubyte.gz",
         "tests/test_data/t10k-labels-idx1-ubyte.gz",
-        "tests/test_data/train-labels-idx1-ubyte.gz",
-    ];
+        "tests/test_data/train-labels-idx1-ubyte.gz"];
 
     let mut ingredients = vec![];
 
     for (i, file_path) in file_paths.iter().enumerate() {
         let file_content = fs::read(file_path).expect("Failed to read test file");
 
-        let mock = mock("GET", format!("/dataset_file_{}", i).as_str())
+        let mock = mock("GET", format!("/dataset_file_{i}").as_str())
             .with_status(200)
             .with_header("content-type", "application/octet-stream")
             .with_body(file_content.clone())
             .create();
 
         let ingredient_data = IngredientData {
-            url: mockito::server_url() + &format!("/dataset_file_{}", i),
+            url: mockito::server_url() + &format!("/dataset_file_{i}"),
             alg: "sha256".to_string(),
             hash: "".to_string(),
             data_types: vec![AssetType::Dataset],

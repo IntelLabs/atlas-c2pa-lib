@@ -188,7 +188,7 @@ impl PartialEq for Assertion {
 /// Helper function to generate assertion labels with optional indexing (for multiple instances of the same type).
 pub fn generate_assertion_label(base_label: &str, index: Option<u32>) -> String {
     if let Some(idx) = index {
-        format!("{}__{}", base_label, idx)
+        format!("{base_label}__{idx}")
     } else {
         base_label.to_string()
     }

@@ -6,7 +6,6 @@ use atlas_c2pa_lib::claim::ClaimV2;
 use atlas_c2pa_lib::datetime_wrapper::OffsetDateTimeWrapper;
 use atlas_c2pa_lib::ingredient::{Ingredient, IngredientData};
 use atlas_c2pa_lib::manifest::{CrossReference, Manifest};
-use hex;
 use mockito::mock;
 use openssl::sha::sha256;
 use time::OffsetDateTime;
@@ -129,7 +128,7 @@ fn test_cross_manifest_linking() {
     let manifest_json = serde_json::to_string(&manifest).unwrap();
     let _manifest_hash = hex::encode(sha256(manifest_json.as_bytes()));
 
-    println!("CrossReference Hash: {}", linked_manifest_hash);
+    println!("CrossReference Hash: {linked_manifest_hash}");
 
     let client = reqwest::blocking::Client::new();
     let response = client
@@ -139,7 +138,7 @@ fn test_cross_manifest_linking() {
 
     assert_eq!(response.status(), 200);
     let body = response.text().expect("Failed to read response body");
-    println!("Response Body: {}", body);
+    println!("Response Body: {body}");
 
     let known_manifest_hash = "8337441bdec617f12215056d9440f35fe3162fa569482f6454d4ccf5cc17d473";
     assert_eq!(
