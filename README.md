@@ -1,6 +1,6 @@
 # Atlas C2PA Library
 
-![GitHub License](https://img.shields.io/github/license/IntelLabs/atlas-c2pa-lib)
+![GitHub License](https://img.shields.io/github/license/IntelLabs/atlas-c2pa-lib?cacheSeconds=3600)
 [![Crates.io](https://img.shields.io/crates/v/atlas-c2pa-lib.svg)](https://crates.io/crates/atlas-c2pa-lib)
 [![Documentation](https://docs.rs/atlas-c2pa-lib/badge.svg)](https://docs.rs/atlas-c2pa-lib)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/IntelLabs/atlas-c2pa-lib/badge)](https://scorecard.dev/viewer/?uri=github.com/IntelLabs/atlas-c2pa-lib)
