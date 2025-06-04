@@ -3,12 +3,13 @@ use atlas_c2pa_lib::claim::ClaimV2;
 use atlas_c2pa_lib::datetime_wrapper::OffsetDateTimeWrapper;
 use atlas_c2pa_lib::ingredient::{Ingredient, IngredientData, LinkedIngredient};
 use atlas_c2pa_lib::manifest::Manifest;
-use mockito::mock;
+use mockito::Server;
 use openssl::sha::sha256;
 use time::OffsetDateTime;
 
 #[test]
 fn test_ingredient_linking_with_verification() {
+    let mut server = Server::new(); // Create a new mock server
     let claim_generator = "c2pa-ml/0.1.0".to_string();
 
     // Fixed timestamp for consistent hashing
@@ -22,14 +23,14 @@ fn test_ingredient_linking_with_verification() {
 
     // Linked ingredient (that itself is a reference to another dataset or model)
     let linked_ingredient = LinkedIngredient {
-        url: mockito::server_url() + "/linked_ingredient.json",
+        url: server.url() + "/linked_ingredient.json",
         hash: "ab82708c91050a674c1b12e2d48f4b2dced1dd25b1132d3f59460ec39ecce664".to_string(), // We'll verify this later
         media_type: "application/json".to_string(),
     };
 
     // Main ingredient with a link to another ingredient
     let ingredient_data = IngredientData {
-        url: mockito::server_url() + "/ingredient.json",
+        url: server.url() + "/ingredient.json",
         alg: "sha256".to_string(),
         hash: "ingredient_hash".to_string(),
         data_types: vec![AssetType::ModelOpenVino],
@@ -78,14 +79,16 @@ fn test_ingredient_linking_with_verification() {
     let _manifest_hash = hex::encode(sha256(manifest_json.as_bytes()));
 
     // Mock the HTTP server to return the linked ingredient
-    let linked_ingredient_mock = mock("GET", "/linked_ingredient.json")
+    let linked_ingredient_mock = server
+        .mock("GET", "/linked_ingredient.json")
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body("{ \"ingredient\": \"linked\" }") // Simulated linked ingredient
         .create();
 
     // Mock the HTTP server to return the ingredient
-    let ingredient_mock = mock("GET", "/ingredient.json")
+    let ingredient_mock = server
+        .mock("GET", "/ingredient.json")
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(manifest_json.clone()) // Return the serialized manifest
