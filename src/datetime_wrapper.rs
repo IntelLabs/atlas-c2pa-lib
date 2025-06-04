@@ -124,11 +124,8 @@ pub fn verify_tsa_token(tsa_token_path: &str, tsa_public_key_path: &str) -> Resu
         ));
     }
 
-    let mut tsa_token_file = File::open(tsa_token_path).map_err(|e| {
-        format!(
-            "[TSA] Failed to open token file '{tsa_token_path}': {e}"
-        )
-    })?;
+    let mut tsa_token_file = File::open(tsa_token_path)
+        .map_err(|e| format!("[TSA] Failed to open token file '{tsa_token_path}': {e}"))?;
 
     let mut tsa_token_data = Vec::new();
     tsa_token_file
@@ -139,20 +136,14 @@ pub fn verify_tsa_token(tsa_token_path: &str, tsa_public_key_path: &str) -> Resu
         return Err("[TSA] TSA token file is empty".to_string());
     }
 
-    let mut cms = CmsContentInfo::from_der(&tsa_token_data).map_err(|e| {
-        format!(
-            "[TSA] Failed to parse CMS structure: {e} (invalid DER format)"
-        )
-    })?;
+    let mut cms = CmsContentInfo::from_der(&tsa_token_data)
+        .map_err(|e| format!("[TSA] Failed to parse CMS structure: {e} (invalid DER format)"))?;
 
     let pem_data = load_pem_file(tsa_public_key_path)
         .map_err(|e| format!("[TSA] Failed to load public key: {e}"))?;
 
-    let tsa_public_key = X509::stack_from_pem(&pem_data).map_err(|e| {
-        format!(
-            "[TSA] Failed to parse public key (invalid PEM format): {e}"
-        )
-    })?;
+    let tsa_public_key = X509::stack_from_pem(&pem_data)
+        .map_err(|e| format!("[TSA] Failed to parse public key (invalid PEM format): {e}"))?;
 
     if tsa_public_key.is_empty() {
         return Err("[TSA] No valid certificates found in the public key file".to_string());
