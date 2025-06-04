@@ -14,9 +14,11 @@ use time::OffsetDateTime;
 fn test_dataset_manifest_creation_v2() {
     let claim_generator = "c2pa-ml/0.1.0".to_string();
 
-    let file_paths = ["tests/test_data/t10k-images-idx3-ubyte.gz",
+    let file_paths = [
+        "tests/test_data/t10k-images-idx3-ubyte.gz",
         "tests/test_data/t10k-labels-idx1-ubyte.gz",
-        "tests/test_data/train-labels-idx1-ubyte.gz"];
+        "tests/test_data/train-labels-idx1-ubyte.gz",
+    ];
 
     let mut ingredients = vec![];
 

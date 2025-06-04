@@ -500,8 +500,7 @@ mod tests {
 
         // Verify with SHA-384
         assert!(
-            verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha384)
-                .is_ok(),
+            verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha384).is_ok(),
             "Failed to verify SHA-384 signature"
         );
 
@@ -524,8 +523,7 @@ mod tests {
 
         // Verify with SHA-512
         assert!(
-            verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha512)
-                .is_ok(),
+            verify_signed_claim_with_algorithm(&signed, &public_key, HashAlgorithm::Sha512).is_ok(),
             "Failed to verify SHA-512 signature"
         );
 
@@ -553,12 +551,8 @@ mod tests {
 
         // Verify default signed data with SHA-384
         assert!(
-            verify_signed_claim_with_algorithm(
-                &signed_default,
-                &public_key,
-                HashAlgorithm::Sha384
-            )
-            .is_ok(),
+            verify_signed_claim_with_algorithm(&signed_default, &public_key, HashAlgorithm::Sha384)
+                .is_ok(),
             "Default sign_claim should use SHA-384"
         );
 
@@ -589,13 +583,11 @@ mod tests {
         // Signatures might be different due to randomness in signing process
         // But both should be valid
         assert!(
-            verify_signed_claim_with_algorithm(&sig1, &public_key, HashAlgorithm::Sha384)
-                .is_ok(),
+            verify_signed_claim_with_algorithm(&sig1, &public_key, HashAlgorithm::Sha384).is_ok(),
             "First signature should be valid"
         );
         assert!(
-            verify_signed_claim_with_algorithm(&sig2, &public_key, HashAlgorithm::Sha384)
-                .is_ok(),
+            verify_signed_claim_with_algorithm(&sig2, &public_key, HashAlgorithm::Sha384).is_ok(),
             "Second signature should be valid"
         );
 
