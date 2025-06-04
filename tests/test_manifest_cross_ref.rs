@@ -6,12 +6,13 @@ use atlas_c2pa_lib::claim::ClaimV2;
 use atlas_c2pa_lib::datetime_wrapper::OffsetDateTimeWrapper;
 use atlas_c2pa_lib::ingredient::{Ingredient, IngredientData};
 use atlas_c2pa_lib::manifest::{CrossReference, Manifest};
-use mockito::mock;
+use mockito::Server;
 use openssl::sha::sha256;
 use time::OffsetDateTime;
 
 #[test]
 fn test_cross_manifest_linking() {
+    let mut server = Server::new(); // Create a new mock server
     let claim_generator = "c2pa-ml/0.1.0".to_string();
 
     let fixed_timestamp = OffsetDateTimeWrapper(
@@ -45,14 +46,15 @@ fn test_cross_manifest_linking() {
 
     let linked_manifest_hash = hex::encode(sha256(linked_manifest_json.as_bytes()));
 
-    let linked_manifest_mock = mock("GET", "/linked_manifest.json")
+    let linked_manifest_mock = server
+        .mock("GET", "/linked_manifest.json")
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(linked_manifest_json.clone()) // Fixed linked manifest
         .create();
 
     let ingredient_data = IngredientData {
-        url: mockito::server_url() + "/model.file",
+        url: server.url() + "/model.file",
         alg: "sha256".to_string(),
         hash: "4e4fc7c4587ee5d5fa73f0b679e2d3549b5b0101fc556df783445a6db8b4161f".to_string(),
         data_types: vec![AssetType::ModelOpenVino],
@@ -118,7 +120,7 @@ fn test_cross_manifest_linking() {
         }),
         created_at: fixed_timestamp.clone(),
         cross_references: vec![CrossReference {
-            manifest_url: mockito::server_url() + "/linked_manifest.json",
+            manifest_url: server.url() + "/linked_manifest.json",
             manifest_hash: linked_manifest_hash.clone(),
             media_type: Some("application/json".to_string()),
         }],

@@ -95,6 +95,7 @@ use crate::claim::{validate_claim_v2, ClaimV2};
 pub use crate::cross_reference::CrossReference;
 use crate::datetime_wrapper::OffsetDateTimeWrapper;
 use crate::ingredient::{validate_ingredient, Ingredient};
+use base64::{engine::general_purpose, Engine as _};
 use openssl::pkey::PKey;
 use openssl::sign::Verifier;
 use serde::{Deserialize, Serialize};
@@ -265,7 +266,8 @@ fn extract_signature_from_manifest(manifest_bytes: &[u8]) -> Result<Vec<u8>, Str
     // Check if claim_v2 is present
     if let Some(claim_v2) = manifest.claim_v2 {
         if let Some(signature) = claim_v2.signature {
-            let signature_bytes = base64::decode(signature)
+            let signature_bytes = general_purpose::STANDARD
+                .decode(signature)
                 .map_err(|e| format!("Failed to decode signature: {e}"))?;
             return Ok(signature_bytes);
         } else {
@@ -274,8 +276,9 @@ fn extract_signature_from_manifest(manifest_bytes: &[u8]) -> Result<Vec<u8>, Str
     }
 
     if let Some(signature) = manifest.claim.signature {
-        let signature_bytes =
-            base64::decode(signature).map_err(|e| format!("Failed to decode signature: {e}"))?;
+        let signature_bytes = general_purpose::STANDARD
+            .decode(signature)
+            .map_err(|e| format!("Failed to decode signature: {e}"))?;
         Ok(signature_bytes)
     } else {
         Err("Signature field is missing in claim.".to_string())

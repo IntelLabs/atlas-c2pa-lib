@@ -2,31 +2,33 @@ use atlas_c2pa_lib::assertion::{
     Action, ActionAssertion, Assertion, Author, CreativeWorkAssertion,
 };
 use atlas_c2pa_lib::asset_type::AssetType;
-use atlas_c2pa_lib::claim::ClaimV2; // Updated to use ClaimV2
+use atlas_c2pa_lib::claim::ClaimV2;
 use atlas_c2pa_lib::datetime_wrapper::OffsetDateTimeWrapper;
 use atlas_c2pa_lib::ingredient::{Ingredient, IngredientData};
 use atlas_c2pa_lib::manifest::Manifest;
-use mockito::mock;
+use mockito::Server;
 use openssl::sha::sha256;
 use std::fs;
 use time::OffsetDateTime;
 
 #[test]
 fn test_manifest_creation_v2() {
+    let mut server = Server::new(); // Create a new mock server
     let claim_generator = "c2pa-ml/0.1.0".to_string();
 
     let file_path = "tests/test_data/model.bin";
     let file_content = fs::read(file_path).expect("Failed to read test file");
 
     // Mock the server to expect a GET request to /model.file
-    let mock = mock("GET", "/model.file")
+    let mock = server
+        .mock("GET", "/model.file")
         .with_status(200)
         .with_header("content-type", "application/octet-stream")
         .with_body(file_content.clone())
         .create();
 
     let ingredient_data = IngredientData {
-        url: mockito::server_url() + "/model.file",
+        url: server.url() + "/model.file",
         alg: "sha256".to_string(),
         hash: "".to_string(),
         data_types: vec![AssetType::ModelOpenVino],
