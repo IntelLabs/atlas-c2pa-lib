@@ -91,11 +91,11 @@
 //! // let validation_result = validate_linked_manifest(&cross_ref, &public_key);
 //! ```
 use crate::assertion::validate_assertion;
-use crate::claim::{validate_claim_v2, ClaimV2};
+use crate::claim::{ClaimV2, validate_claim_v2};
 pub use crate::cross_reference::CrossReference;
 use crate::datetime_wrapper::OffsetDateTimeWrapper;
-use crate::ingredient::{validate_ingredient, Ingredient};
-use base64::{engine::general_purpose, Engine as _};
+use crate::ingredient::{Ingredient, validate_ingredient};
+use base64::{Engine as _, engine::general_purpose};
 use openssl::pkey::PKey;
 use openssl::sign::Verifier;
 use serde::{Deserialize, Serialize};

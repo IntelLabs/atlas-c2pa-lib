@@ -71,11 +71,11 @@
 //!     is_active: true,
 //! };
 //! ```
-use crate::assertion::validate_assertion;
 use crate::assertion::Assertion;
+use crate::assertion::validate_assertion;
 use crate::ingredient::validate_ingredient;
 
-use crate::datetime_wrapper::{validate_datetime, OffsetDateTimeWrapper};
+use crate::datetime_wrapper::{OffsetDateTimeWrapper, validate_datetime};
 use crate::ingredient::Ingredient;
 use serde::{Deserialize, Serialize};
 

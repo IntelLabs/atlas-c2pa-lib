@@ -356,7 +356,7 @@ fn validate_hash_assertion(hash_assertion: &HashAssertion) -> Result<(), String>
             return Err(format!(
                 "[HashAssertion] Unsupported hashing algorithm: '{}'. Expected one of: sha256, sha384, sha512",
                 hash_assertion.algorithm
-            ))
+            ));
         }
     }
 
