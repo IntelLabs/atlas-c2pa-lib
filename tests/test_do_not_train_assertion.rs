@@ -2,8 +2,8 @@ use atlas_c2pa_lib::assertion::Assertion;
 use atlas_c2pa_lib::assertion::DoNotTrainAssertion;
 use atlas_c2pa_lib::claim::ClaimV2;
 use atlas_c2pa_lib::datetime_wrapper::OffsetDateTimeWrapper;
-use atlas_c2pa_lib::manifest::validate_manifest;
 use atlas_c2pa_lib::manifest::Manifest;
+use atlas_c2pa_lib::manifest::validate_manifest;
 use time::OffsetDateTime;
 
 #[cfg(test)]

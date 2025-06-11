@@ -1,6 +1,6 @@
 use atlas_c2pa_lib::asset_type::AssetType;
 use atlas_c2pa_lib::ingredient::{Ingredient, IngredientData};
-use atlas_c2pa_lib::ml::manifest::{create_model_manifest, MLManifestBuilder};
+use atlas_c2pa_lib::ml::manifest::{MLManifestBuilder, create_model_manifest};
 use atlas_c2pa_lib::ml::types::{DatasetInfo, MLFramework, ModelFormat, ModelInfo, TrainingInfo};
 
 #[test]
