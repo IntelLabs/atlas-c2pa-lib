@@ -160,7 +160,7 @@ use openssl::sign::{Signer, Verifier};
 use std::str::FromStr;
 
 /// Supported hash algorithms for COSE signing and verification
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum HashAlgorithm {
     /// SHA-256 hash algorithm (256-bit)
     Sha256,

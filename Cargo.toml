@@ -1,6 +1,6 @@
 [package]
 name = "atlas-c2pa-lib" 
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "A Rust library for creating, signing, and verifying machine learning assets with C2PA"
 authors = ["Intel Labs"]
