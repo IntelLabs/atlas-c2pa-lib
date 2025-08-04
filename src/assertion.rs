@@ -399,3 +399,341 @@ fn validate_custom_assertion(custom: &CustomAssertion) -> Result<(), String> {
 
     Ok(())
 }
+#[cfg(test)]
+mod assertion_tests {
+    use super::*;
+    use serde_json::json;
+
+    // Tests for DoNotTrainAssertion
+    #[test]
+    fn test_do_not_train_assertion_creation_and_validation() {
+        // Valid DoNotTrainAssertion
+        let valid_assertion =
+            DoNotTrainAssertion::new("Contains copyrighted material".to_string(), true);
+        assert!(valid_assertion.verify().is_ok());
+
+        // Invalid - empty reason
+        let invalid_empty = DoNotTrainAssertion::new("".to_string(), true);
+        assert!(invalid_empty.verify().is_err());
+        assert_eq!(
+            invalid_empty.verify().unwrap_err(),
+            "[DoNotTrainAssertion] Missing required reason field"
+        );
+
+        // Invalid - whitespace only reason
+        let invalid_whitespace = DoNotTrainAssertion::new("   ".to_string(), true);
+        assert!(invalid_whitespace.verify().is_err());
+
+        // Invalid - not enforced
+        let invalid_not_enforced = DoNotTrainAssertion::new("Valid reason".to_string(), false);
+        assert!(invalid_not_enforced.verify().is_err());
+        assert_eq!(
+            invalid_not_enforced.verify().unwrap_err(),
+            "[DoNotTrainAssertion] Assertion must have enforced=true to be valid"
+        );
+    }
+
+    // Tests for ActionAssertion
+    #[test]
+    fn test_action_assertion_validation() {
+        // Valid ActionAssertion
+        let valid_action = ActionAssertion {
+            actions: vec![Action {
+                action: "c2pa.created".to_string(),
+                software_agent: Some("TestAgent/1.0".to_string()),
+                parameters: Some(json!({"key": "value"})),
+                digital_source_type: Some("trained".to_string()),
+                instance_id: Some("instance_123".to_string()),
+            }],
+        };
+        let assertion = Assertion::Action(valid_action);
+        assert!(validate_assertion(&assertion).is_ok());
+
+        // Invalid - empty actions vector
+        let empty_actions = ActionAssertion { actions: vec![] };
+        let assertion = Assertion::Action(empty_actions);
+        assert!(validate_assertion(&assertion).is_err());
+
+        // Invalid - empty action name
+        let invalid_action_name = ActionAssertion {
+            actions: vec![Action {
+                action: "".to_string(),
+                software_agent: None,
+                parameters: None,
+                digital_source_type: None,
+                instance_id: None,
+            }],
+        };
+        let assertion = Assertion::Action(invalid_action_name);
+        assert!(validate_assertion(&assertion).is_err());
+
+        // Invalid - empty software agent
+        let invalid_software_agent = ActionAssertion {
+            actions: vec![Action {
+                action: "c2pa.created".to_string(),
+                software_agent: Some("".to_string()),
+                parameters: None,
+                digital_source_type: None,
+                instance_id: None,
+            }],
+        };
+        let assertion = Assertion::Action(invalid_software_agent);
+        assert!(validate_assertion(&assertion).is_err());
+
+        // Invalid - null parameters
+        let invalid_null_params = ActionAssertion {
+            actions: vec![Action {
+                action: "c2pa.created".to_string(),
+                software_agent: None,
+                parameters: Some(serde_json::Value::Null),
+                digital_source_type: None,
+                instance_id: None,
+            }],
+        };
+        let assertion = Assertion::Action(invalid_null_params);
+        assert!(validate_assertion(&assertion).is_err());
+    }
+
+    // Tests for HashAssertion
+    #[test]
+    fn test_hash_assertion_validation() {
+        // Valid SHA-256 hash
+        let valid_sha256 = HashAssertion {
+            algorithm: "sha256".to_string(),
+            hash_value: vec![0u8; 32], // 32 bytes for SHA-256
+        };
+        let assertion = Assertion::Hash(valid_sha256);
+        assert!(validate_assertion(&assertion).is_ok());
+
+        // Valid SHA-384 hash
+        let valid_sha384 = HashAssertion {
+            algorithm: "sha384".to_string(),
+            hash_value: vec![0u8; 48], // 48 bytes for SHA-384
+        };
+        let assertion = Assertion::Hash(valid_sha384);
+        assert!(validate_assertion(&assertion).is_ok());
+
+        // Valid SHA-512 hash
+        let valid_sha512 = HashAssertion {
+            algorithm: "sha512".to_string(),
+            hash_value: vec![0u8; 64], // 64 bytes for SHA-512
+        };
+        let assertion = Assertion::Hash(valid_sha512);
+        assert!(validate_assertion(&assertion).is_ok());
+
+        // Invalid - empty algorithm
+        let invalid_empty_alg = HashAssertion {
+            algorithm: "".to_string(),
+            hash_value: vec![0u8; 32],
+        };
+        let assertion = Assertion::Hash(invalid_empty_alg);
+        assert!(validate_assertion(&assertion).is_err());
+
+        // Invalid - unsupported algorithm
+        let invalid_alg = HashAssertion {
+            algorithm: "md5".to_string(),
+            hash_value: vec![0u8; 16],
+        };
+        let assertion = Assertion::Hash(invalid_alg);
+        assert!(validate_assertion(&assertion).is_err());
+
+        // Invalid - wrong hash length for SHA-256
+        let invalid_length = HashAssertion {
+            algorithm: "sha256".to_string(),
+            hash_value: vec![0u8; 16], // Wrong length
+        };
+        let assertion = Assertion::Hash(invalid_length);
+        assert!(validate_assertion(&assertion).is_err());
+
+        // Invalid - empty hash value
+        let invalid_empty_hash = HashAssertion {
+            algorithm: "sha256".to_string(),
+            hash_value: vec![],
+        };
+        let assertion = Assertion::Hash(invalid_empty_hash);
+        assert!(validate_assertion(&assertion).is_err());
+    }
+
+    // Tests for IngredientAssertion
+    #[test]
+    fn test_ingredient_assertion_validation() {
+        // Valid IngredientAssertion
+        let valid_ingredient = IngredientAssertion {
+            title: "Training Dataset".to_string(),
+            relationship: "inputTo".to_string(),
+            format: "application/zip".to_string(),
+            document_id: "doc_123".to_string(),
+            instance_id: "instance_123".to_string(),
+            data: IngredientData {
+                url: "https://example.com/dataset.zip".to_string(),
+                alg: "sha256".to_string(),
+                hash: "abc123".to_string(),
+                data_types: vec!["dataset".to_string()],
+            },
+        };
+        let assertion = Assertion::Ingredient(valid_ingredient.clone());
+        assert!(validate_assertion(&assertion).is_ok());
+
+        // Invalid - empty title
+        let mut invalid = valid_ingredient.clone();
+        invalid.title = "".to_string();
+        let assertion = Assertion::Ingredient(invalid);
+        assert!(validate_assertion(&assertion).is_err());
+
+        // Invalid - empty data types
+        let mut invalid = valid_ingredient.clone();
+        invalid.data.data_types = vec![];
+        let assertion = Assertion::Ingredient(invalid);
+        assert!(validate_assertion(&assertion).is_err());
+    }
+
+    // Tests for CreativeWorkAssertion
+    #[test]
+    fn test_creative_work_assertion_validation() {
+        // Valid CreativeWorkAssertion
+        let valid_creative = CreativeWorkAssertion {
+            context: "http://schema.org/".to_string(),
+            creative_type: "Dataset".to_string(),
+            author: vec![Author {
+                author_type: "Person".to_string(),
+                name: "Jane Doe".to_string(),
+            }],
+        };
+        let assertion = Assertion::CreativeWork(valid_creative.clone());
+        assert!(validate_assertion(&assertion).is_ok());
+
+        // Invalid - empty context
+        let mut invalid = valid_creative.clone();
+        invalid.context = "".to_string();
+        let assertion = Assertion::CreativeWork(invalid);
+        assert!(validate_assertion(&assertion).is_err());
+
+        // Invalid - empty authors
+        let mut invalid = valid_creative.clone();
+        invalid.author = vec![];
+        let assertion = Assertion::CreativeWork(invalid);
+        assert!(validate_assertion(&assertion).is_err());
+
+        // Invalid - author with empty name
+        let invalid_author = CreativeWorkAssertion {
+            context: "http://schema.org/".to_string(),
+            creative_type: "Dataset".to_string(),
+            author: vec![Author {
+                author_type: "Person".to_string(),
+                name: "".to_string(),
+            }],
+        };
+        let assertion = Assertion::CreativeWork(invalid_author);
+        assert!(validate_assertion(&assertion).is_err());
+    }
+
+    // Tests for CustomAssertion
+    #[test]
+    fn test_custom_assertion_validation() {
+        // Valid CustomAssertion
+        let valid_custom = CustomAssertion {
+            label: "c2pa.ml.custom".to_string(),
+            data: json!({"key": "value"}),
+        };
+        let assertion = Assertion::CustomAssertion(valid_custom);
+        assert!(validate_assertion(&assertion).is_ok());
+
+        // Invalid - empty label
+        let invalid_label = CustomAssertion {
+            label: "".to_string(),
+            data: json!({"key": "value"}),
+        };
+        let assertion = Assertion::CustomAssertion(invalid_label);
+        assert!(validate_assertion(&assertion).is_err());
+
+        // Invalid - null data
+        let invalid_data = CustomAssertion {
+            label: "c2pa.ml.custom".to_string(),
+            data: serde_json::Value::Null,
+        };
+        let assertion = Assertion::CustomAssertion(invalid_data);
+        assert!(validate_assertion(&assertion).is_err());
+    }
+
+    // Tests for assertion label generation
+    #[test]
+    fn test_generate_assertion_label() {
+        assert_eq!(generate_assertion_label("c2pa.action", None), "c2pa.action");
+        assert_eq!(
+            generate_assertion_label("c2pa.action", Some(0)),
+            "c2pa.action__0"
+        );
+        assert_eq!(
+            generate_assertion_label("c2pa.action", Some(42)),
+            "c2pa.action__42"
+        );
+    }
+
+    // Tests for Assertion PartialEq implementation
+    #[test]
+    fn test_assertion_partial_eq() {
+        // Hash assertions equality
+        let hash1 = Assertion::Hash(HashAssertion {
+            algorithm: "sha256".to_string(),
+            hash_value: vec![1, 2, 3],
+        });
+        let hash2 = Assertion::Hash(HashAssertion {
+            algorithm: "sha256".to_string(),
+            hash_value: vec![1, 2, 3],
+        });
+        let hash3 = Assertion::Hash(HashAssertion {
+            algorithm: "sha256".to_string(),
+            hash_value: vec![4, 5, 6],
+        });
+        assert_eq!(hash1, hash2);
+        assert_ne!(hash1, hash3);
+
+        // Ingredient assertions equality
+        let ing1 = Assertion::Ingredient(IngredientAssertion {
+            title: "Dataset".to_string(),
+            relationship: "inputTo".to_string(),
+            format: "application/zip".to_string(),
+            document_id: "doc_123".to_string(),
+            instance_id: "instance_123".to_string(),
+            data: IngredientData {
+                url: "https://example.com/data.zip".to_string(),
+                alg: "sha256".to_string(),
+                hash: "abc123".to_string(),
+                data_types: vec!["dataset".to_string()],
+            },
+        });
+        let ing2 = ing1.clone();
+        let mut ing3 = ing1.clone();
+        if let Assertion::Ingredient(ref mut ing) = ing3 {
+            ing.document_id = "doc_456".to_string();
+        }
+        assert_eq!(ing1, ing2);
+        assert_ne!(ing1, ing3);
+
+        // Different types are not equal
+        assert_ne!(hash1, ing1);
+    }
+
+    // Test serialization/deserialization of assertions
+    #[test]
+    fn test_assertion_serialization() {
+        let original =
+            Assertion::DoNotTrain(DoNotTrainAssertion::new("Test reason".to_string(), true));
+
+        // Serialize to JSON
+        let serialized = serde_json::to_string(&original).unwrap();
+
+        // Deserialize back
+        let deserialized: Assertion = serde_json::from_str(&serialized).unwrap();
+
+        // Verify they match
+        if let (Assertion::DoNotTrain(orig), Assertion::DoNotTrain(deser)) =
+            (&original, &deserialized)
+        {
+            assert_eq!(orig.reason, deser.reason);
+            assert_eq!(orig.enforced, deser.enforced);
+        } else {
+            panic!("Deserialization produced wrong assertion type");
+        }
+    }
+}
