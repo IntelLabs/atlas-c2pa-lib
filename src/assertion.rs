@@ -202,6 +202,7 @@ pub fn validate_assertion(assertion: &Assertion) -> Result<(), String> {
         Assertion::Hash(hash) => validate_hash_assertion(hash),
         Assertion::DoNotTrain(do_not_train) => do_not_train.verify(),
         Assertion::CreativeWork(creative_work) => validate_creative_work_assertion(creative_work),
+        Assertion::CustomAssertion(custom) => validate_custom_assertion(custom),
         _ => Err("Unsupported assertion type".to_string()),
     }
 }
@@ -380,6 +381,20 @@ fn validate_hash_assertion(hash_assertion: &HashAssertion) -> Result<(), String>
             expected_length,
             hash_assertion.hash_value.len()
         ));
+    }
+
+    Ok(())
+}
+
+fn validate_custom_assertion(custom: &CustomAssertion) -> Result<(), String> {
+    // Validate that the label is non-empty
+    if custom.label.trim().is_empty() {
+        return Err("Custom assertion must have a valid label.".to_string());
+    }
+
+    // Validate that the data is non-null
+    if custom.data.is_null() {
+        return Err("Custom assertion must have a data field.".to_string());
     }
 
     Ok(())
