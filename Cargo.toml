@@ -23,7 +23,7 @@ reqwest = { version = "0.12.5", features = ["blocking"] }
 openssl = "0.10.72"
 openssl-sys = "0.9.103"
 ring = "0.17.12"
-coset = "^0.3.5"
+coset = "^0.4.0"
 hex = "0.4"
 base64 = "0.22"
 chrono = { version = "0.4", features = ["serde"] }
