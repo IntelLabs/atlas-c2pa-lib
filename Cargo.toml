@@ -21,7 +21,6 @@ default = []
 # At runtime, requires Intel GPU drivers with Level Zero support
 #
 # Installation:
-#   apt install intel-oneapi-compiler-dpcpp-cpp
 #   source /opt/intel/oneapi/setvars.sh
 #   cargo build --features gpu-hashing
 gpu-hashing = []
@@ -52,10 +51,10 @@ criterion = { version = "0.5", features = ["html_reports"] }
 
 [build-dependencies]
 
-#[[bench]]
-#name = "gpu_hash_benchmark"
-#harness = false
-#required-features = ["gpu-hashing"]
+[[bench]]
+name = "gpu_hash_benchmark"
+harness = false
+required-features = ["gpu-hashing"]
 
 [package.metadata.docs.rs]
 # Document all features on docs.rs

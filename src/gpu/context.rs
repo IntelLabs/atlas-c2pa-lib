@@ -2,7 +2,7 @@
 //!
 //! This module provides device discovery and information for Intel Xe GPUs.
 
-use super::error::{GpuError, GpuResult, check_error};
+use super::error::{GpuResult, check_error};
 use super::ffi;
 
 /// Type of GPU device
@@ -142,28 +142,6 @@ pub fn get_available_devices() -> GpuResult<Vec<GpuDevice>> {
     }
 
     Ok(devices)
-}
-
-/// Get the best available Intel Xe GPU device
-pub fn get_best_intel_device() -> GpuResult<GpuDevice> {
-    let devices = get_available_devices()?;
-
-    // First try to find an Intel Xe GPU
-    if let Some(device) = devices.iter().find(|d| d.is_intel_xe) {
-        return Ok(device.clone());
-    }
-
-    // Fall back to any Intel device
-    if let Some(device) = devices.iter().find(|d| d.is_intel) {
-        return Ok(device.clone());
-    }
-
-    // Fall back to any GPU
-    if let Some(device) = devices.into_iter().next() {
-        return Ok(device);
-    }
-
-    Err(GpuError::NoDeviceFound)
 }
 
 #[cfg(test)]
