@@ -19,7 +19,7 @@ url = { version = "2.5.4", features = ["serde"] }
 uuid = { version = "1.10.1", features = ["v4"] }
 time = { version = "0.3.36", features = ["serde"] }
 serde_with = { version = "3", features = ["time_0_3"] }
-reqwest = { version = "0.12.5", features = ["blocking"] }
+reqwest = { version = "0.13.1", features = ["blocking"] }
 openssl = "0.10.72"
 openssl-sys = "0.9.103"
 ring = "0.17.12"
