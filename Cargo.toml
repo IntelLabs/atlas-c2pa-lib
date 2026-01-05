@@ -1,7 +1,7 @@
 [package]
-name = "atlas-c2pa-lib" 
+name = "atlas-c2pa-lib"
 edition = "2024"
-version = "0.1.2"
+version = "0.2.0"
 description = "A Rust library for creating, signing, and verifying machine learning assets with C2PA"
 authors = ["Intel Labs"]
 license = "MIT OR Apache-2.0"
@@ -10,6 +10,23 @@ documentation = "https://docs.rs/atlas-c2pa-lib"
 readme = "README.md"
 keywords = ["c2pa", "machine-learning", "provenance", "content-authenticity", "ml"]
 categories = ["authentication", "cryptography", "science"]
+build = "build.rs"
+
+[features]
+# Default features
+default = []
+
+# GPU-accelerated hashing using Intel Xe GPUs via SYCL/oneAPI
+# Requires Intel oneAPI to be installed for compilation
+# At runtime, requires Intel GPU drivers with Level Zero support
+#
+# Installation:
+#   source /opt/intel/oneapi/setvars.sh
+#   cargo build --features gpu-hashing
+gpu-hashing = []
+
+# Enable all GPU optimizations
+gpu-full = ["gpu-hashing"]
 
 [dependencies]
 serde = { version = "1.0.203", features = ["derive"] }
@@ -30,3 +47,16 @@ chrono = { version = "0.4", features = ["serde"] }
 
 [dev-dependencies]
 mockito = "1.7.0"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[build-dependencies]
+
+[[bench]]
+name = "gpu_hash_benchmark"
+harness = false
+required-features = ["gpu-hashing"]
+
+[package.metadata.docs.rs]
+# Document all features on docs.rs
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
