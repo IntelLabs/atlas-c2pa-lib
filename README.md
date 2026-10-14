@@ -15,6 +15,7 @@
 - **Secure Provenance**: Cryptographic verification of asset origin and lineage
 - **Transparent Lineage**: Track datasets and components used to create models
 - **Governance Controls**: DoNotTrain assertions to control asset usage permissions
+- **GPU-Accelerated Hashing for Intel Xe GPUs**: hash algorithms optimized for Intel GPUs, and CPUs
 
 ## 📦 Installation
 
@@ -22,7 +23,7 @@ Add Atlas C2PA Library to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-atlas-c2pa-lib = "0.1.2"
+atlas-c2pa-lib = "0.2.0"
 ```
 
 ## 🚀 Quick Start
@@ -97,6 +98,9 @@ let manifest = MLManifestBuilder::new(
 .build()
 .unwrap();
 ```
+## 🔲 GPU-Accelerated Hashing for Intel Xe GPUs
+
+For GPU documentation, please visit [gpu/README.md](src/gpu/README.md).
 
 ## 📋 Use Cases
 

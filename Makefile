@@ -1,3 +1,4 @@
+cat > Makefile << 'EOF'
 # Variables
 PROJECT_NAME = atlas-c2pa-lib
 CARGO = cargo
@@ -5,6 +6,7 @@ CARGO_DOC_OPTS = --no-deps
 CARGO_TEST_OPTS =
 CARGO_CLIPPY_OPTS = -- -D warnings
 CARGO_BENCH_OPTS =
+GPU_FEATURE = --features gpu-hashing
 
 # Default target
 .DEFAULT_GOAL := help
@@ -19,6 +21,15 @@ build:
 release:
 	@echo "Building release version of $(PROJECT_NAME)..."
 	$(CARGO) build --release
+
+# GPU build targets
+build-gpu:
+	@echo "Building $(PROJECT_NAME) with GPU hashing..."
+	$(CARGO) build $(GPU_FEATURE)
+
+release-gpu:
+	@echo "Building release version with GPU hashing..."
+	$(CARGO) build --release $(GPU_FEATURE)
 
 # Documentation targets
 doc:
@@ -47,6 +58,13 @@ fmt:
 	@echo "Formatting code..."
 	$(CARGO) fmt
 
+fmt-cpp:
+	@echo "Formatting C++ code..."
+	clang-format -i src/gpu/sycl/gpu_hash.cpp src/gpu/sycl/gpu_hash.h
+
+fmt-all: fmt fmt-cpp
+	@echo "All code formatted."
+
 fmt-check:
 	@echo "Checking code format..."
 	$(CARGO) fmt -- --check
@@ -60,10 +78,35 @@ bench:
 	@echo "Running benchmarks..."
 	$(CARGO) bench $(CARGO_BENCH_OPTS)
 
+# GPU benchmark targets
+bench-gpu:
+	@echo "Running GPU benchmarks..."
+	$(CARGO) bench $(GPU_FEATURE) $(CARGO_BENCH_OPTS)
+
+bench-gpu-4gb:
+	@echo "Running 4GB GPU benchmark..."
+	$(CARGO) bench $(GPU_FEATURE) -- "4gb_file"
+
+bench-gpu-algorithms:
+	@echo "Running GPU algorithm comparison benchmarks..."
+	$(CARGO) bench $(GPU_FEATURE) -- "algorithms_cpu_vs_gpu"
+
+bench-gpu-batch:
+	@echo "Running GPU batch benchmarks..."
+	$(CARGO) bench $(GPU_FEATURE) -- "batch_cpu_vs_gpu"
+
+bench-gpu-crossover:
+	@echo "Running GPU crossover point benchmarks..."
+	$(CARGO) bench $(GPU_FEATURE) -- "crossover_point"
+
 # Run and clean targets
 run:
 	@echo "Running $(PROJECT_NAME)..."
 	$(CARGO) run
+
+run-gpu:
+	@echo "Running GPU test binary..."
+	$(CARGO) run $(GPU_FEATURE) --bin test_gpu_hash
 
 clean:
 	@echo "Cleaning $(PROJECT_NAME)..."
@@ -72,6 +115,9 @@ clean:
 # CI and verification targets
 check: fmt-check lint test
 	@echo "All checks passed!"
+
+check-gpu: fmt-check lint-gpu test-gpu
+	@echo "All GPU checks passed!"
 
 verify: check doc test-doc bench
 	@echo "All verification steps completed successfully!"
@@ -93,6 +139,8 @@ help:
 	@echo "  make              - Build the project (same as 'make build')"
 	@echo "  make build        - Build the project in debug mode"
 	@echo "  make release      - Build the project in release mode"
+	@echo "  make build-gpu    - Build with GPU hashing support"
+	@echo "  make release-gpu  - Build release with GPU hashing"
 	@echo ""
 	@echo "Documentation:"
 	@echo "  make doc          - Generate documentation"
@@ -102,12 +150,22 @@ help:
 	@echo "  make test         - Run the tests"
 	@echo "  make test-verbose - Run the tests with verbose output"
 	@echo "  make test-doc     - Test documentation examples"
+	@echo ""
+	@echo "Benchmarks:"
 	@echo "  make bench        - Run benchmarks"
+	@echo "  make bench-gpu    - Run all GPU benchmarks"
+	@echo "  make bench-gpu-4gb - Run 4GB file GPU benchmark"
+	@echo "  make bench-gpu-algorithms - Compare CPU vs GPU algorithms"
+	@echo "  make bench-gpu-batch - Run batch processing benchmarks"
+	@echo "  make bench-gpu-crossover - Find CPU/GPU crossover point"
 	@echo ""
 	@echo "Code Quality:"
-	@echo "  make fmt          - Format the code"
+	@echo "  make fmt          - Format Rust code"
+	@echo "  make fmt-cpp      - Format C++ code (clang-format)"
+	@echo "  make fmt-all      - Format all code"
 	@echo "  make fmt-check    - Check code formatting without changing files"
 	@echo "  make lint         - Lint the code using Clippy"
+	@echo "  make lint-gpu     - Lint with GPU features enabled"
 	@echo ""
 	@echo "Utility:"
 	@echo "  make run          - Run the project"
@@ -122,4 +180,11 @@ help:
 	@echo "  make publish      - Publish the crate to crates.io"
 
 # Phony targets
-.PHONY: all build release doc doc-open test test-verbose test-doc fmt fmt-check lint bench run clean check verify publish-dry-run publish help
+.PHONY: all build release build-gpu release-gpu \
+        doc doc-open doc-gpu \
+        test test-verbose test-doc \
+        fmt fmt-cpp fmt-all fmt-check lint lint-gpu \
+        bench bench-gpu bench-gpu-4gb bench-gpu-algorithms bench-gpu-batch bench-gpu-crossover \
+        run clean \
+        check verify \
+        publish-dry-run publish help
