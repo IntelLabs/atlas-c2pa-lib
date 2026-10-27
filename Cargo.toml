@@ -25,7 +25,7 @@ openssl-sys = "0.9.103"
 ring = "0.17.12"
 coset = "^0.4.0"
 hex = "0.4"
-base64 = "0.22"
+base64 = "0.23"
 chrono = { version = "0.4", features = ["serde"] }
 
 [dev-dependencies]
